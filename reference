@@ -1,0 +1,60 @@
+The following involves calling or drawing upon code written by others.
+// Define pin numbers
+const int trigPin = 9;
+const int echoPin = 10;
+
+// Variables for duration and distance
+long duration;
+int distance;
+
+void setup() {
+  pinMode(trigPin, OUTPUT); // Set the trigPin as an Output
+  pinMode(echoPin, INPUT);  // Set the echoPin as an Input
+  Serial.begin(9600);       // Start serial communication at 9600 baud
+}
+
+void loop() {
+  // Clear the trigPin by setting it LOW
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+
+  // Set the trigPin HIGH for 10 microseconds to send out a sonic burst
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  // Read the echoPin, returning the sound wave travel time in microseconds
+  duration = pulseIn(echoPin, HIGH);
+
+  // Calculate distance in cm (Speed of sound is ~0.034 cm/microsecond, divide by 2 for go-and-return)
+  distance = duration * 0.034 / 2;
+
+  // Print the distance on the Serial Monitor
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+
+  delay(500); // Wait half a second before next reading
+}
+
+
+Breathing light
+int ledPin = 9; // 将 LED 连接到支持 PWM 的数字引脚 9
+
+void setup() {
+  pinMode(ledPin, OUTPUT); // 设置引脚为输出模式
+}
+
+void loop() {
+  // 渐亮过程（从暗到亮）
+  for (int value = 0; value <= 255; value += 5) {
+    analogWrite(ledPin, value); 
+    delay(30); 
+  }
+
+  // 渐暗过程（从亮到暗）
+  for (int value = 255; value >= 0; value -= 5) {
+    analogWrite(ledPin, value); 
+    delay(30); 
+  }
+}

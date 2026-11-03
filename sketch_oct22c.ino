@@ -165,20 +165,19 @@ void loop() {
     }
   }
 
-  // 呼吸灯刷新（每 5ms）
-  if (now - lastBreathTime >= BREATH_INTERVAL) {
-    lastBreathTime = now;
+  if (now - lastBreathTime >= BREATH_INTERVAL) {  // Check whether the 5ms breathing update interval has elapsed
+    lastBreathTime = now;  // Update last breath
 
-    brightness += breathDir;
+    brightness += breathDir;  // Adjust brightness based on direction: +1 when brightening, -1 when dimming 
 
-    if (brightness >= 255) {
-      brightness = 255;
-      breathDir = -1;
+    if (brightness >= 255) {  // If the brightness reaches the maximum value of 255
+      brightness = 255;  // Limit brightness to a maximum of 255
+      breathDir = -1;  // Change direction to fade out
     } else if (brightness <= 0) {
       brightness = 0;
       breathDir = 1;
     }
 
-    refreshLeds();
+    refreshLeds();  // Refresh the LED strip display with the latest brightness level
   }
 }

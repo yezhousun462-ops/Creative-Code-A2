@@ -1,59 +1,59 @@
-#include <Adafruit_NeoPixel.h>
-#define LED_PIN    6
-#define LED_COUNT  16
+#include <Adafruit_NeoPixel.h>  // Include the Adafruit NeoPixel library
+#define LED_PIN    6  // Define the LED strip data pin as pin 6 on the Arduino
+#define LED_COUNT  16  // Define the total number of LED beads as 16
 
-Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);  
+// Create a NeoPixel object named 'strip':
+// - LED_COUNT: Number of LEDs
+// - LED_PIN: Data pin
+// - NEO_GRB: Color order is GRB (most WS2812 LED strips use the GRB order)
+// - NEO_KHZ800: Communication speed is 800kHz
 
-//超声波引脚
-const int trigPin = 9;
-const int echoPin = 10;
+const int trigPin = 9;  // Connect the ultrasonic module's Trig (trigger) pin to Arduino pin 9
+const int echoPin = 10;  // Connect the Echo pin of the ultrasonic module to pin 10 on the Arduino
 
 //颜色表（保留，用于参考/调试）
 int colors[][3] = {
-  {255, 0,   0  },   // 0 红
-  {0,   255, 0  },   // 1 绿
-  {0,   0,   255},   // 2 蓝
-  {255, 255, 0  },   // 3 黄
-  {255, 0,   255},   // 4 紫
-  {0,   255, 255},   // 5 青
-  {255, 128, 0  },   // 6 橙
-  {255, 105, 180}    // 7 粉
+  {255, 0,   0  },   // Index 0: Red (R=255, G=0, B=0)
+  {0,   255, 0  },   // Index 1: Green (R=0, G=255, B=0)
+  {0,   0,   255},   // Index 2: Blue (R=0, G=0, B=255)
+  {255, 255, 0  },   // Index 3: Yellow (R=255, G=255, B=0)
+  {255, 0,   255},   // Index 4: Purple (R=255, G=0, B=255)
+  {0,   255, 255},   // Index 5: Cyan (R=0, G=255, B=255)
+  {255, 128, 0  },   // Index 6: Orange (R=255, G=128, B=0)
+  {255, 105, 180}    // Index 7: Pink (R=255, G=105, B=180)
 };
-int colorCount = sizeof(colors) / sizeof(colors[0]);
+int colorCount = sizeof(colors) / sizeof(colors[0]);  // Calculate the number of colors in the color table (total number of bytes / bytes per row = 8)
 
-//呼吸灯状态
-int  brightness   = 0;      // 当前亮度 (0~255)
-int  breathDir    = 1;      // 1 = 渐亮，-1 = 渐暗
-unsigned long lastBreathTime = 0;
-const unsigned long BREATH_INTERVAL = 5;   // 每 5ms 更新一次亮度
+int  brightness   = 0;      // Current brightness (0–255)   // Current LED brightness value; 0 means completely off, 255 means maximum brightness
+int  breathDir    = 1;      // 1 = brightening, -1 = dimming // Breathing light direction indicator: 1 denotes increasing brightness, -1 denotes decreasing brightness
+unsigned long lastBreathTime = 0;  // Timestamp of the last update to the breathing light brightness (in milliseconds)
+const unsigned long BREATH_INTERVAL = 5;   // Breathing light update interval: Adjust brightness every 5 milliseconds to create a smooth breathing effect
 
-//超声波状态
-int  objectDetected = 0;            // 0 = 没感应到，1 = 感应到
-const int DETECT_DISTANCE_CM = 50;  // 阈值：50cm 内有物体算"感应到"
-const int NEAR_DISTANCE_CM   = 2;   // 最近距离
-const int FAR_DISTANCE_CM    = DETECT_DISTANCE_CM;
+int  objectDetected = 0;            // 0 = Not detected, 1 = Detected  //Whether an object has been detected within the detection range
+const int DETECT_DISTANCE_CM = 50;  // Detection threshold: An object is considered detected if the distance is less than 50 cm.
+const int NEAR_DISTANCE_CM   = 2;   // Minimum distance threshold for color mapping: 2 cm
+const int FAR_DISTANCE_CM    = DETECT_DISTANCE_CM;  // Maximum distance boundary for color mapping: equal to the detection threshold of 50 cm
 
-// 当前距离对应的颜色
-int currentR = 0;
-int currentG = 0;
-int currentB = 0;
+int currentR = 0;  // The red component of the color currently to be displayed (0–255)
+int currentG = 0;  // The green component of the color currently to be displayed (0–255)
+int currentB = 0;  // The blue component of the color currently to be displayed (0–255)
 
-long lastDistance = 0;
+long lastDistance = 0;  // Store the previously measured distance value (cm)
 
-unsigned long lastMeasureTime = 0;
-const unsigned long MEASURE_INTERVAL = 500; // 每 0.5s 测一次
+unsigned long lastMeasureTime = 0;  // Record the timestamp of the previous ultrasonic measurement (in milliseconds)
+const unsigned long MEASURE_INTERVAL = 500; // Ultrasonic measurement interval: measure distance every 500 milliseconds
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(9600);  // Initialize serial communication with a baud rate of 9600
 
-  pinMode(trigPin, OUTPUT);
-  pinMode(echoPin, INPUT);
+  pinMode(trigPin, OUTPUT);  // Set the Trig pin to output mode
+  pinMode(echoPin, INPUT);  // Set the Echo pin to input mode
 
-  strip.begin();
-  strip.show();
+  strip.begin();  // Initialize the NeoPixel LED strip
+  strip.show();  // Refresh the LED strip immediately (defaults to all off)
 }
 
-// 测一次距离（cm）
 long measureDistance() {
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
